@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+clock time;
+int N = 6; //number of pawns
+chan go[N]; //go if there's one pawn in the same row or column
+chan end[N];
+chan wait[N];
+
+
+
+
+typedef int [0,N-1] pawn;
+
+//pawns
+int blue = 1;
+int red = 2; //red pawn
+int yellow = 3;
+int purple = 4;
+int orange = 5;
+
+int board[5][5] = {{0, 0, 0, 0, 1},
+                   {0, 3, 0, 0, 0},
+                   {0, 0, 0, 0, 4},
+                   {0, 0, 5, 0, 0},
+                   {0, 0, 0, 0, 2}};
+
+
+
+//final step, so the red pawn can go to the middle
+
+void middle(pawn p1, int red) {
+    int i;
+    int result[5][5];
+    if (((board[3][2] == red || board[4][2] == red) &amp;&amp; board[1][2] != 0) ||
+        ((board[2][3] == red || board[2][4] == red) &amp;&amp; board[2][1] != 0) ||
+        ((board[2][0] == red || board[2][1] == red) &amp;&amp; board[2][3] != 0) ||
+        ((board[0][1] == red || board[0][2] == red) &amp;&amp; board[3][2] != 0)) {
+        board[2][2] = red;
+    }
+
+}
+
+void move(pawn p1, pawn p2) {
+    int pawn1_x;
+    int pawn2_x;
+    int pawn1_y;
+    int pawn2_y;
+    int i;
+    //detecting positions of the pawns
+    for (i = 0; i &lt; 5; i++) {
+        int j;
+        for(j = 0; j &lt; 5; j++)
+        {
+            if (board[i][j]==p1) {
+                pawn1_x = i;
+                pawn1_y = j;
+
+            }
+        }
+    }
+    for (i = 0; i &lt; 5; i++) {
+        int j;
+        for(j = 0; j &lt; 5; j++)
+        {
+            if (board[i][j]==p2) {
+                pawn2_x = i;
+                pawn2_y = j;
+
+            }
+        }
+    }
+    //for two pawns in the same row
+    if (pawn1_x == pawn2_x) {
+        if (pawn1_y &lt; pawn2_y) {
+            for (i = pawn1_y + 1; i &lt; pawn2_y; i++) {
+                if (board[pawn1_x][i] != 0) {
+                    return;
+                }
+            }
+            //pmoving the pawn up
+            board[pawn1_x][pawn1_y] = 0; 
+            board[pawn1_x][pawn2_y-1] = p1;
+
+        }
+        else if (pawn1_y &gt; pawn2_y) {
+            for (i = pawn1_y - 1; i &gt; pawn2_y; i--) {
+                if (board[pawn1_x][i] != 0) {
+                    return;
+                }
+            }
+            //moving the pawn dowm
+            board[pawn1_x][pawn1_y] = 0; 
+            board[pawn1_x][pawn2_y + 1] = p1;
+        }
+
+    }
+    //columns
+    if (pawn1_y == pawn2_y) {
+        if (pawn1_x &lt; pawn2_x) {
+            for (i = pawn1_x + 1; i &lt; pawn2_x; i++) {
+                if (board[i][pawn1_y] != 0) {
+                    return;
+                }
+            }
+            //moving the pawn left
+            board[pawn1_x][pawn1_y] = 0; 
+            board[pawn2_x-1][pawn1_y] = p1;
+
+        }
+        else if (pawn1_x &gt; pawn2_x) {
+            for (i = pawn1_x - 1; i &gt; pawn2_x; i--) {
+                if (board[i][pawn1_y] != 0) {
+                    return;
+                }
+            }
+            //moving the pawn  right
+            board[pawn1_x][pawn1_y] = 0; 
+            board[pawn2_x+1][pawn1_y] = p1;
+        }
+
+    }
+}
+
+</declaration>
+	<template>
+		<name x="5" y="5">game</name>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id0" x="-221" y="-136">
+		</location>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="select" x="-238" y="-25">p1: pawn</label>
+			<label kind="synchronisation" x="-229" y="-42">end!</label>
+			<label kind="assignment" x="-237" y="-59">middle(p1, red)</label>
+			<nail x="-255" y="-59"/>
+			<nail x="-255" y="-59"/>
+			<nail x="-170" y="-59"/>
+			<nail x="-170" y="-59"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="select" x="-255" y="-297">p1: pawn</label>
+			<label kind="synchronisation" x="-246" y="-263">go[p1]!</label>
+			<label kind="assignment" x="-263" y="-280">move(p1, p2)</label>
+			<nail x="-179" y="-220"/>
+			<nail x="-264" y="-220"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+// List one or more processes to be composed into a system.
+system game;</system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
